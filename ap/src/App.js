@@ -1,4 +1,4 @@
-import { BrowserRouter } from 'react-router-dom';
+import { HashRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
 
 import Header from "./Models/header/header";
@@ -7,12 +7,12 @@ import store from "./Store/store";
 
 function App() {
   return (
-    <BrowserRouter basename=''>
+    <HashRouter basename=''>
       <Provider store={store}>
         <Header/>
         <Base/>
       </Provider>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
 
