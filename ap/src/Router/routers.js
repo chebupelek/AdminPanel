@@ -1,4 +1,4 @@
-const base = "https://hitscord-backend.online/api/admin";
+const base = "https://166664.msk.web.highserver.ru/api/admin";
 const routers = {
     login: `${base}/login`,
     logout: `${base}/logout`,
