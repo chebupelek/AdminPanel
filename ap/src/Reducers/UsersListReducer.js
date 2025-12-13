@@ -3,48 +3,56 @@ import { notification } from "antd";
 
 const SET_USERS = "SET_USERS";
 const SET_ROLES = "SET_ROLES";
+const SET_LOADING_USERS = "SET_LOADING_USERS";
+const SET_LOADING_ROLES_SHORT = "SET_LOADING_ROLES_SHORT";
+const SET_LOADING_ADD_ROLE = "SET_LOADING_ADD_ROLE";
+const SET_LOADING_REMOVE_ROLE = "SET_LOADING_REMOVE_ROLE";
 
 let initialUsersListState = {
-    users: [
-      {
-        id: "",
-        mail: "",
-        accountName: "",
-        accountTag: "",
-        accountCreateDate: Date(),
-        notifiable: false,
-        friendshipApplication: false,
-        nonFriendMessage: false,
-        icon: {
-            fileId: "",
-            fileName: "",
-            fileType: "",
-            fileSize: 0,
-            deleted: false
-        },
-        systemRoles: [
-            {
-                id: "",
-                name: "",
-                type: 0
-            }
-        ]
-      }
-    ],
+    users: [/*{
+        {
+            id: "",
+            mail: "",
+            accountName: "",
+            accountTag: "",
+            accountCreateDate: Date(),
+            notifiable: false,
+            friendshipApplication: false,
+            nonFriendMessage: false,
+            icon: {
+                fileId: "",
+                fileName: "",
+                fileType: "",
+                fileSize: 0,
+                deleted: false
+            },
+            systemRoles: [
+                {
+                    id: "",
+                    name: "",
+                    type: 0
+                }
+            ]
+        }
+    }*/],
     pagination: {
-      Page: 0,
-      Number: 0,
-      PageCount: 0,
-      NumberCount: 0
+        Page: 0,
+        Number: 0,
+        PageCount: 0,
+        NumberCount: 0
     },
-    rolesShort: [
+    rolesShort: [/*{
         {
             id: "",
             name: "",
             type: 0,
             childRoles: []
         }
-    ]
+    }*/],
+    loadingUsers: false,
+    loadingRolesShort: false,
+    loadingAddRole: false,
+    loadingRemoveRole: false
   }
 
 const usersListReducer = (state = initialUsersListState, action) => {
@@ -60,10 +68,27 @@ const usersListReducer = (state = initialUsersListState, action) => {
         case SET_ROLES:
             newState.roles = action.Roles;
             return newState;
+        case SET_LOADING_USERS:
+            newState.loadingUsers = action.value;
+            return newState;
+        case SET_LOADING_ROLES_SHORT:
+            newState.loadingRolesShort = action.value;
+            return newState;
+        case SET_LOADING_ADD_ROLE:
+            newState.loadingAddRole = action.value;
+            return newState;
+        case SET_LOADING_REMOVE_ROLE:
+            newState.loadingRemoveRole = action.value;
+            return newState;
         default:
             return newState;
     }
 }
+
+export function setLoadingUsersActionCreator(value) {return { type: SET_LOADING_USERS, value }}
+export function setLoadingRolesShortActionCreator(value) {return { type: SET_LOADING_ROLES_SHORT, value }}
+export function setLoadingAddRoleActionCreator(value) {return { type: SET_LOADING_ADD_ROLE, value }}
+export function setLoadingRemoveRoleActionCreator(value) {return { type: SET_LOADING_REMOVE_ROLE, value }}
 
 export function getUsersListActionCreator(data){
     return {type: SET_USERS, Users: data.users, Page: data.page, Number: data.number, PageCount: data.pageCount, NumberCount: data.numberCount}
@@ -71,13 +96,16 @@ export function getUsersListActionCreator(data){
 
 export function getUsersListThunkCreator(queryParams, navigate) {
     return (dispatch) => {
+        dispatch(setLoadingUsersActionCreator(true));
         return usersApi.getUsers(queryParams, navigate)
             .then(data => {
-                if (!data) {
-                    return;
+                if (!data)
+                {
+                   return; 
                 }
-                return dispatch(getUsersListActionCreator(data));
-        })
+                dispatch(getUsersListActionCreator(data));
+            })
+            .finally(() => dispatch(setLoadingUsersActionCreator(false)));
     }
 }
 
@@ -87,45 +115,58 @@ export function getRolesShortListActionCreator(data){
 
 export function getRolesShortListThunkCreator(queryParams, navigate) {
     return (dispatch) => {
+        dispatch(setLoadingRolesShortActionCreator(true));
         return usersApi.getRolesShort(queryParams, navigate)
             .then(data => {
-                if (!data) {
+                if (!data)
+                {
                     return;
                 }
-                return dispatch(getRolesShortListActionCreator(data));
-        })
+                dispatch(getRolesShortListActionCreator(data));
+            })
+            .finally(() => dispatch(setLoadingRolesShortActionCreator(false)));
     }
 }
 
-export function addRoleThunkCreator(data, navigate, resetState, closeModal) {
+export function addRoleThunkCreator(data, navigate, resetState, closeModal, reloadUsers) {
     return (dispatch) => {
+        dispatch(setLoadingAddRoleActionCreator(true));
         return usersApi.addRoles(data, navigate)
             .then(response => {
-                if (response !== null) {
+                if (response !== null) 
+                {
                     notification.success({
                         message: "Успех",
-                        description: "Роль успешно добавлена"
+                        description: "Роль успешно добавлена",
+                        duration: 4,
+                        placement: "topLeft"
                     });
                     closeModal();
                     resetState();
-                    navigate("/users");
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 100);
-
+                    reloadUsers();
                 }
-            });
+            })
+            .finally(() => dispatch(setLoadingAddRoleActionCreator(false)));
     };
 }
 
-export function removeRoleThunkCreator(data, navigate) {
+export function removeRoleThunkCreator(data, navigate, reloadUsers) {
     return (dispatch) => {
+        dispatch(setLoadingRemoveRoleActionCreator(true));
         return usersApi.removeRole(data, navigate)
             .then(response => {
-                if (response !== null) {
-                    window.location.reload();
+                if (response !== null) 
+                {
+                    notification.success({
+                        message: "Успех",
+                        description: "Роль успешно изъята",
+                        duration: 4,
+                        placement: "topLeft"
+                    });
+                    reloadUsers();
                 }
-            });
+            })
+            .finally(() => dispatch(setLoadingRemoveRoleActionCreator(false)));
     };
 }
 

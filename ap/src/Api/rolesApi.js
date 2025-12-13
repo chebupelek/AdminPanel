@@ -1,39 +1,62 @@
 import routers from "../Router/routers";
+import { notification } from "antd";
 
-function getRoles(navigate){
+function getRoles(navigate) 
+{
     return fetch(routers.rolesFull, {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${localStorage.getItem("token")}`
         }
-    }).then(response => {
-        if(!response.ok){
-            if (response.status === 400) {
-                alert('Invalid arguments for filtration/pagination');
-                return null;
-            } else if (response.status === 401) {
-                localStorage.clear();
-                navigate("/login");
-                return null;
-            } else if (response.status === 500) {
-                alert('Internal Server Error');
-                return null;
-            } else {
-                alert(`HTTP error! Status: ${response.status}`);
-                return null;
-            }
+    })
+    .then(async response => {
+        const text = await response.text();
+        let data;
+        try 
+        {
+            data = text ? JSON.parse(text) : null;
+        } 
+        catch (e) 
+        {
+            data = text;
         }
-        return response.json();
-    }).then(data =>{
+
+        if (!response.ok) 
+        {
+            const description = typeof data === 'object' ? data.MessageFront || JSON.stringify(data) : data;
+            switch (response.status) 
+            {
+                case 400:
+                    notification.error({ message: "Проблемы с пагинацией", description, duration: 4, placement: "topLeft" });
+                    break;
+                case 404:
+                    notification.error({ message: "Объект не найден", description, duration: 4, placement: "topLeft" });
+                    break;
+                case 401:
+                    notification.error({ message: "Ошибка с аутентификацией", description: "Проблема с токеном", duration: 4, placement: "topLeft" });
+                    localStorage.clear();
+                    navigate("/login");
+                    break;
+                case 500:
+                    notification.error({ message: "Проблема в работе сервера", description, duration: 4, placement: "topLeft" });
+                    break;
+                default:
+                    notification.error({ message: `Ошибка HTTP ${response.status}`, description, duration: 4, placement: "topLeft" });
+            }
+            return null;
+        }
         return data;
-    }).catch(error=>{
-        console.log(error.message);
+    })
+    .catch(error => {
+        console.error(error.message);
+        notification.error({ message: "Ошибка сети", description: error.message, duration: 4, placement: "topLeft" });
         return null;
     });
 }
 
-function createRole(body, navigate) {
+function createRole(body, navigate) 
+{
     return fetch(routers.roleCreate, {
         method: "POST",
         headers: {
@@ -43,32 +66,92 @@ function createRole(body, navigate) {
         body: JSON.stringify(body)
     })
     .then(async response => {
-        if (!response.ok) {
-            if (response.status === 400) {
-                alert('Invalid');
-                return null;
-            } else if (response.status === 401) {
-                localStorage.clear();
-                navigate("/login");
-                return null;
-            } else if (response.status === 500) {
-                alert('Internal Server Error');
-                return null;
-            } else {
-                alert(`HTTP error! Status: ${response.status}`);
-                return null;
+        const text = await response.text();
+        let data;
+        try 
+        {
+            data = text ? JSON.parse(text) : null;
+        } 
+        catch (e) 
+        {
+            data = text;
+        }
+        if (!response.ok) 
+        {
+            switch (response.status) 
+            {
+                case 400:
+                    notification.error(
+                        {
+                            message: "Проблемы с пагинацией",
+                            description: typeof data === 'object' ? data.MessageFront || JSON.stringify(data) : data,
+                            duration: 4,
+                            placement: "topLeft"
+                        }
+                    );
+                    return null;
+                case 404:
+                    notification.error(
+                        {
+                            message: "Объект не найден",
+                            description: typeof data === 'object' ? data.MessageFront || JSON.stringify(data) : data,
+                            duration: 4,
+                            placement: "topLeft"
+                        }
+                    );
+                    return null;
+                case 401:
+                    notification.error(
+                        {
+                            message: "Ошибка с аутентификацией",
+                            description: "Проблема с токеном",
+                            duration: 4,
+                            placement: "topLeft"
+                        }
+                    );
+                    localStorage.clear();
+                    navigate("/login");
+                    return null;
+                case 500:
+                    notification.error(
+                        {
+                            message: "Проблема в работе сервера",
+                            description: typeof data === 'object' ? data.MessageFront || JSON.stringify(data) : data,
+                            duration: 4,
+                            placement: "topLeft"
+                        }
+                    );
+                    return null;
+                default:
+                    notification.error(
+                        {
+                            message: `Ошибка HTTP ${response.status}`,
+                            description: typeof data === 'object' ? data.MessageFront || JSON.stringify(data) : data,
+                            duration: 4,
+                            placement: "topLeft"
+                        }
+                    );
+                    return null;
             }
         }
-        const text = await response.text();
-        return text ? JSON.parse(text) : {};
+        return data || {};
     })
     .catch(error => {
-        console.log(error.message);
+        console.error(error.message);
+        notification.error(
+            {
+                message: "Ошибка сети",
+                description: error.message,
+                duration: 4,
+                placement: "topLeft"
+            }
+        );
         return null;
     });
 }
 
-function updateRole(body, navigate) {
+function updateRole(body, navigate) 
+{
     return fetch(routers.roleUpdate, {
         method: "PUT",
         headers: {
@@ -78,32 +161,92 @@ function updateRole(body, navigate) {
         body: JSON.stringify(body)
     })
     .then(async response => {
-        if (!response.ok) {
-            if (response.status === 400) {
-                alert('Invalid');
-                return null;
-            } else if (response.status === 401) {
-                localStorage.clear();
-                navigate("/login");
-                return null;
-            } else if (response.status === 500) {
-                alert('Internal Server Error');
-                return null;
-            } else {
-                alert(`HTTP error! Status: ${response.status}`);
-                return null;
+        const text = await response.text();
+        let data;
+        try 
+        {
+            data = text ? JSON.parse(text) : null;
+        } 
+        catch (e) 
+        {
+            data = text;
+        }
+        if (!response.ok) 
+        {
+            switch (response.status) 
+            {
+                case 400:
+                    notification.error(
+                        {
+                            message: "Проблемы с пагинацией",
+                            description: typeof data === 'object' ? data.MessageFront || JSON.stringify(data) : data,
+                            duration: 4,
+                            placement: "topLeft"
+                        }
+                    );
+                    return null;
+                case 404:
+                    notification.error(
+                        {
+                            message: "Объект не найден",
+                            description: typeof data === 'object' ? data.MessageFront || JSON.stringify(data) : data,
+                            duration: 4,
+                            placement: "topLeft"
+                        }
+                    );
+                    return null;
+                case 401:
+                    notification.error(
+                        {
+                            message: "Ошибка с аутентификацией",
+                            description: "Проблема с токеном",
+                            duration: 4,
+                            placement: "topLeft"
+                        }
+                    );
+                    localStorage.clear();
+                    navigate("/login");
+                    return null;
+                case 500:
+                    notification.error(
+                        {
+                            message: "Проблема в работе сервера",
+                            description: typeof data === 'object' ? data.MessageFront || JSON.stringify(data) : data,
+                            duration: 4,
+                            placement: "topLeft"
+                        }
+                    );
+                    return null;
+                default:
+                    notification.error(
+                        {
+                            message: `Ошибка HTTP ${response.status}`,
+                            description: typeof data === 'object' ? data.MessageFront || JSON.stringify(data) : data,
+                            duration: 4,
+                            placement: "topLeft"
+                        }
+                    );
+                    return null;
             }
         }
-        const text = await response.text();
-        return text ? JSON.parse(text) : {};
+        return data || {};
     })
     .catch(error => {
-        console.log(error.message);
+        console.error(error.message);
+        notification.error(
+            {
+                message: "Ошибка сети",
+                description: error.message,
+                duration: 4,
+                placement: "topLeft"
+            }
+        );
         return null;
     });
 }
 
-function deleteRole(body, navigate) {
+function deleteRole(body, navigate) 
+{
     return fetch(routers.roleDelete, {
         method: "DELETE",
         headers: {
@@ -113,27 +256,86 @@ function deleteRole(body, navigate) {
         body: JSON.stringify(body)
     })
     .then(async response => {
-        if (!response.ok) {
-            if (response.status === 400) {
-                alert('Invalid');
-                return null;
-            } else if (response.status === 401) {
-                localStorage.clear();
-                navigate("/login");
-                return null;
-            } else if (response.status === 500) {
-                alert('Internal Server Error');
-                return null;
-            } else {
-                alert(`HTTP error! Status: ${response.status}`);
-                return null;
+        const text = await response.text();
+        let data;
+        try 
+        {
+            data = text ? JSON.parse(text) : null;
+        } 
+        catch (e) 
+        {
+            data = text;
+        }
+        if (!response.ok) 
+        {
+            switch (response.status) 
+            {
+                case 400:
+                    notification.error(
+                        {
+                            message: "Проблемы с пагинацией",
+                            description: typeof data === 'object' ? data.MessageFront || JSON.stringify(data) : data,
+                            duration: 4,
+                            placement: "topLeft"
+                        }
+                    );
+                    return null;
+                case 404:
+                    notification.error(
+                        {
+                            message: "Объект не найден",
+                            description: typeof data === 'object' ? data.MessageFront || JSON.stringify(data) : data,
+                            duration: 4,
+                            placement: "topLeft"
+                        }
+                    );
+                    return null;
+                case 401:
+                    notification.error(
+                        {
+                            message: "Ошибка с аутентификацией",
+                            description: "Проблема с токеном",
+                            duration: 4,
+                            placement: "topLeft"
+                        }
+                    );
+                    localStorage.clear();
+                    navigate("/login");
+                    return null;
+                case 500:
+                    notification.error(
+                        {
+                            message: "Проблема в работе сервера",
+                            description: typeof data === 'object' ? data.MessageFront || JSON.stringify(data) : data,
+                            duration: 4,
+                            placement: "topLeft"
+                        }
+                    );
+                    return null;
+                default:
+                    notification.error(
+                        {
+                            message: `Ошибка HTTP ${response.status}`,
+                            description: typeof data === 'object' ? data.MessageFront || JSON.stringify(data) : data,
+                            duration: 4,
+                            placement: "topLeft"
+                        }
+                    );
+                    return null;
             }
         }
-        const text = await response.text();
-        return text ? JSON.parse(text) : {};
+        return data || {};
     })
     .catch(error => {
-        console.log(error.message);
+        console.error(error.message);
+        notification.error(
+            {
+                message: "Ошибка сети",
+                description: error.message,
+                duration: 4,
+                placement: "topLeft"
+            }
+        );
         return null;
     });
 }

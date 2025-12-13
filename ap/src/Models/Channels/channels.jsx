@@ -1,15 +1,17 @@
-import { Button, Col, Row, Card, Select, Pagination } from "antd";
+import { Button, Col, Row, Card, Select, Pagination, Spin } from "antd";
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getChannelsListThunkCreator } from "../../Reducers/ChannelsListReducer";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import ChannelCard from "./channelCard";
 
-function Channels() {
+function Channels() 
+{
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const channels = useSelector(state => state.channels.channels)  || [];
     const pagination = useSelector(state => state.channels.pagination);
+    const loadingChannels = useSelector(state => state.channels.loadingChannels);
 
     const [searchParams, setSearchParams] = useSearchParams();
 
@@ -77,26 +79,30 @@ function Channels() {
                     </Row>
                 </div>
             </Card>
-            {channels ? 
-                <div>
-                    <Row gutter={16} style={{ marginTop: '2%' }}>
-                        {channels.map(channel => (
-                            <Col key={channel.id} span={24 / (window.innerWidth > 1200 ? 2 : 1)}>
-                                <ChannelCard
-                                    id={channel.channelId}
-                                    name={channel.channelName}
-                                    serverId={channel.serverID}
-                                    serverName={channel.serverName}
-                                    DelteTime={channel.deleteTime}
-                                />
-                            </Col>
-                        ))}
-                    </Row>
-                    <Row justify="center" style={{ marginTop: '2%' }}>
-                        <Pagination current={parseInt(selectedPage)} pageSize={parseInt(1)} total={pagination.PageCount} onChange={page => handleChangePage(page)} showSizeChanger={false} />
-                    </Row>
-                </div> : 
-            <></>}
+            <Spin spinning={loadingChannels}>
+                {channels ? 
+                    <div>
+                        <Row gutter={16} style={{ marginTop: '2%' }}>
+                            {channels.map(channel => (
+                                <Col key={channel.id} span={24 / (window.innerWidth > 1200 ? 2 : 1)}>
+                                    <ChannelCard
+                                        id={channel.channelId}
+                                        name={channel.channelName}
+                                        serverId={channel.serverID}
+                                        serverName={channel.serverName}
+                                        DelteTime={channel.deleteTime}
+                                    />
+                                </Col>
+                            ))}
+                        </Row>
+                        {pagination.PageCount > 1 && (
+                            <Row justify="center" style={{ marginTop: '2%' }}>
+                                <Pagination current={parseInt(selectedPage)} pageSize={1} total={pagination.PageCount} onChange={handleChangePage} showSizeChanger={false}/>
+                            </Row>
+                        )}
+                    </div> : 
+                <></>}
+            </Spin>
         </div>
     );
 }
